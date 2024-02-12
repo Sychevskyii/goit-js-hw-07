@@ -3,8 +3,8 @@ import { galleryItems } from "./gallery-items.js";
 
 const galleryEl = document.querySelector(".gallery");
 const galleryMarkup = createGalleryItemsMarkup(galleryItems);
-
 galleryEl.insertAdjacentHTML("beforeend", galleryMarkup);
+galleryEl.addEventListener("click", onModalShow);
 
 function createGalleryItemsMarkup(galleryItems) {
   return galleryItems
@@ -23,23 +23,27 @@ function createGalleryItemsMarkup(galleryItems) {
     .join("");
 }
 
-galleryEl.addEventListener("click", getLargeImageUrl);
-let largeImageUrl = "";
+const instance = basicLightbox.create(`<img src="">`, {
+  onShow: () => {
+    document.addEventListener("keydown", onEsc);
+  },
+  onClose: () => {
+    document.removeEventListener("keydown", onEsc);
+  },
+});
 
-function getLargeImageUrl(e) {
+function onModalShow(e) {
   e.preventDefault();
 
-  const isGalleryLink = e.target.classList.contains("gallery__image");
+  if (e.target.nodeName !== "IMG") return;
 
-  if (!isGalleryLink) {
-    return;
-  }
-
-  largeImageUrl = e.target.dataset.source;
-
-  const instance = basicLightbox.create(`
-    <img src="${largeImageUrl}" width="800" height="600">
-`);
+  instance.element().querySelector("img").src = e.target.dataset.source;
 
   instance.show();
+}
+
+function onEsc(e) {
+  if (e.code === "Escape") {
+    instance.close();
+  }
 }
